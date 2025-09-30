@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}WaveAI - Chat avec {{ agent.title() }}{% endblock %}
+{% block title %}WaveAI v3 Ultimate - Chat avec {{ agent.title() }}{% endblock %}
 
 {% block content %}
 <div class="chat-container">
@@ -10,7 +10,7 @@
             {% if agent == 'alex' %}
                 <div class="agent-emoji">📧</div>
                 <h2>Alex - Assistant Productivité</h2>
-                <p>Je vous aide avec Gmail, emails et tâches professionnelles</p>
+                <p>Expert en Gmail, emails et tâches professionnelles</p>
             {% elif agent == 'lina' %}
                 <div class="agent-emoji">💼</div>
                 <h2>Lina - Experte LinkedIn</h2>
@@ -18,57 +18,83 @@
             {% elif agent == 'marco' %}
                 <div class="agent-emoji">📱</div>
                 <h2>Marco - Expert Réseaux Sociaux</h2>
-                <p>Je crée du contenu viral et optimise votre présence sociale</p>
+                <p>Créateur de contenu viral et stratège digital</p>
             {% elif agent == 'sofia' %}
                 <div class="agent-emoji">📅</div>
                 <h2>Sofia - Assistante Organisation</h2>
-                <p>Gestion de calendrier, planning et organisation</p>
+                <p>Gestion de calendrier, planning et optimisation temps</p>
             {% elif agent == 'kai' %}
                 <div class="agent-emoji">💬</div>
                 <h2>Kai - Assistant Conversationnel</h2>
-                <p>Discussion naturelle et support général</p>
+                <p>Discussion naturelle et support général intelligent</p>
             {% endif %}
+        </div>
+
+        <!-- Indicateurs de connexion API -->
+        <div class="api-status-bar">
+            <div id="apiStatus" class="api-indicators">
+                <span class="api-indicator" id="openaiStatus">🤖 OpenAI</span>
+                <span class="api-indicator" id="anthropicStatus">🧠 Claude</span>
+                <span class="api-indicator" id="offlineStatus">🔄 IA Hors ligne</span>
+            </div>
         </div>
         
         <!-- Zone de chat -->
         <div class="chat-messages" id="chatMessages">
             <div class="message agent">
                 <strong>
-                    {% if agent == 'alex' %}
-                        Alex
-                    {% elif agent == 'lina' %}
-                        Lina
-                    {% elif agent == 'marco' %}
-                        Marco
-                    {% elif agent == 'sofia' %}
-                        Sofia
-                    {% elif agent == 'kai' %}
-                        Kai
-                    {% endif %}
+                    {% if agent == 'alex' %}Alex{% elif agent == 'lina' %}Lina{% elif agent == 'marco' %}Marco{% elif agent == 'sofia' %}Sofia{% elif agent == 'kai' %}Kai{% endif %}
                 </strong>: 
                 {% if agent == 'alex' %}
-                    Salut ! Je suis Alex, votre assistant productivité. Comment puis-je vous aider avec vos emails ou tâches professionnelles aujourd'hui ? 📧
+                    Salut ! Je suis Alex, votre expert productivité. Prêt à optimiser vos emails et tâches ? 📧✨
                 {% elif agent == 'lina' %}
-                    Bonjour ! Je suis Lina, votre experte LinkedIn. Prêt(e) à booster votre réseau professionnel ? 💼
+                    Bonjour ! Lina à votre service pour booster votre présence LinkedIn et réseau professionnel ! 💼🚀
                 {% elif agent == 'marco' %}
-                    Hey ! Marco ici, votre expert réseaux sociaux. Créons du contenu qui cartonne ! 📱
+                    Hey ! Marco ici, prêt à créer du contenu qui cartonne sur les réseaux ! 📱🔥
                 {% elif agent == 'sofia' %}
-                    Salut ! Sofia à votre service pour organiser votre quotidien. Qu'avez-vous à planifier ? 📅
+                    Salut ! Sofia pour organiser votre quotidien comme un chef ! Qu'avons-nous à planifier ? 📅⚡
                 {% elif agent == 'kai' %}
-                    Salut ! Je suis Kai, ravi de discuter avec vous. De quoi voulez-vous parler ? 💬
+                    Salut ! Kai ici, ravi de discuter avec vous. De quoi voulez-vous parler aujourd'hui ? 💬😊
                 {% endif %}
             </div>
         </div>
         
-        <!-- Zone de saisie -->
-        <div class="chat-input">
-            <input type="text" id="messageInput" placeholder="Tapez votre message..." />
-            <button type="button" id="sendButton" class="btn">Envoyer</button>
+        <!-- Zone de saisie avec microphone et import -->
+        <div class="chat-input-container">
+            <!-- Barre d'outils -->
+            <div class="chat-toolbar">
+                <button type="button" id="micButton" class="tool-btn" title="Parler au lieu d'écrire">
+                    🎤
+                </button>
+                <button type="button" id="docButton" class="tool-btn" title="Importer un document">
+                    📄
+                </button>
+                <input type="file" id="fileInput" accept=".pdf,.doc,.docx,.txt,.jpg,.png" style="display: none;">
+                <div id="voiceIndicator" class="voice-indicator hidden">
+                    🔴 Écoute en cours... Cliquez pour arrêter
+                </div>
+            </div>
+            
+            <!-- Zone de saisie -->
+            <div class="chat-input">
+                <textarea id="messageInput" placeholder="Tapez votre message ou utilisez le micro..." rows="1"></textarea>
+                <button type="button" id="sendButton" class="btn">
+                    <span id="sendIcon">📤</span>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Prévisualisation document importé -->
+        <div id="docPreview" class="doc-preview hidden">
+            <div class="doc-info">
+                <span id="docName">Document.pdf</span>
+                <button id="removeDoc" class="remove-btn">❌</button>
+            </div>
         </div>
         
         <!-- Indicateur de chargement -->
         <div id="loadingIndicator" class="text-center mt-20 hidden">
-            <p>🤔 {{ agent.title() }} réfléchit...</p>
+            <p><span class="loading-spinner">⏳</span> {{ agent.title() }} réfléchit...</p>
         </div>
     </div>
     
@@ -79,6 +105,180 @@
         </a>
     </div>
 </div>
+
+<!-- Styles CSS supplémentaires -->
+<style>
+.chat-input-container {
+    background: #f8f9fa;
+    border-radius: 15px;
+    padding: 15px;
+    margin-bottom: 15px;
+}
+
+.chat-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.tool-btn {
+    background: #667eea;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 45px;
+    height: 45px;
+    font-size: 1.2em;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.tool-btn:hover {
+    background: #5a6fd8;
+    transform: scale(1.1);
+}
+
+.tool-btn.active {
+    background: #e74c3c;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+.voice-indicator {
+    background: #e74c3c;
+    color: white;
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-size: 0.9em;
+    animation: pulse 1.5s infinite;
+}
+
+.chat-input {
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+}
+
+.chat-input textarea {
+    flex: 1;
+    padding: 12px;
+    border: 2px solid #e1e5e9;
+    border-radius: 25px;
+    font-size: 1em;
+    resize: none;
+    min-height: 45px;
+    max-height: 120px;
+    outline: none;
+    font-family: inherit;
+}
+
+.chat-input textarea:focus {
+    border-color: #667eea;
+}
+
+.chat-input button {
+    min-width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.api-status-bar {
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.api-indicators {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.api-indicator {
+    padding: 5px 12px;
+    border-radius: 15px;
+    font-size: 0.8em;
+    background: #f1f3f4;
+    color: #666;
+    transition: all 0.3s ease;
+}
+
+.api-indicator.connected {
+    background: #d4edda;
+    color: #155724;
+}
+
+.api-indicator.error {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.doc-preview {
+    background: #e3f2fd;
+    border: 1px solid #90caf9;
+    border-radius: 10px;
+    padding: 10px;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.doc-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.remove-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.1em;
+}
+
+.loading-spinner {
+    display: inline-block;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .chat-toolbar {
+        justify-content: center;
+    }
+    
+    .tool-btn {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .api-indicators {
+        gap: 5px;
+    }
+    
+    .api-indicator {
+        font-size: 0.7em;
+        padding: 3px 8px;
+    }
+}
+</style>
 {% endblock %}
 
 {% block scripts %}
@@ -86,11 +286,110 @@
 document.addEventListener('DOMContentLoaded', function() {
     const messageInput = document.getElementById('messageInput');
     const sendButton = document.getElementById('sendButton');
+    const sendIcon = document.getElementById('sendIcon');
     const chatMessages = document.getElementById('chatMessages');
     const loadingIndicator = document.getElementById('loadingIndicator');
-    const agent = '{{ agent }}';
+    const micButton = document.getElementById('micButton');
+    const docButton = document.getElementById('docButton');
+    const fileInput = document.getElementById('fileInput');
+    const voiceIndicator = document.getElementById('voiceIndicator');
+    const docPreview = document.getElementById('docPreview');
+    const docName = document.getElementById('docName');
+    const removeDoc = document.getElementById('removeDoc');
     
-    // Fonction pour faire défiler vers le bas
+    const agent = '{{ agent }}';
+    let isRecording = false;
+    let recognition = null;
+    let currentDocument = null;
+    
+    // Initialisation reconnaissance vocale
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        recognition = new SpeechRecognition();
+        recognition.continuous = false;
+        recognition.interimResults = true;
+        recognition.lang = 'fr-FR';
+        
+        recognition.onstart = function() {
+            isRecording = true;
+            micButton.classList.add('active');
+            voiceIndicator.classList.remove('hidden');
+            messageInput.placeholder = "🎤 Parlez maintenant...";
+        };
+        
+        recognition.onresult = function(event) {
+            let finalTranscript = '';
+            let interimTranscript = '';
+            
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+                const transcript = event.results[i][0].transcript;
+                if (event.results[i].isFinal) {
+                    finalTranscript += transcript + ' ';
+                } else {
+                    interimTranscript += transcript;
+                }
+            }
+            
+            messageInput.value = finalTranscript + interimTranscript;
+            adjustTextareaHeight();
+        };
+        
+        recognition.onend = function() {
+            stopRecording();
+        };
+        
+        recognition.onerror = function(event) {
+            console.error('Erreur reconnaissance vocale:', event.error);
+            stopRecording();
+            showNotification('Erreur de reconnaissance vocale. Réessayez.', 'error');
+        };
+    } else {
+        micButton.style.display = 'none';
+        console.warn('Reconnaissance vocale non supportée');
+    }
+    
+    // Fonction pour arrêter l'enregistrement
+    function stopRecording() {
+        isRecording = false;
+        micButton.classList.remove('active');
+        voiceIndicator.classList.add('hidden');
+        messageInput.placeholder = "Tapez votre message ou utilisez le micro...";
+    }
+    
+    // Ajustement automatique hauteur textarea
+    function adjustTextareaHeight() {
+        messageInput.style.height = 'auto';
+        messageInput.style.height = Math.min(messageInput.scrollHeight, 120) + 'px';
+    }
+    
+    // Mise à jour statut APIs
+    function updateAPIStatus() {
+        const openaiKey = localStorage.getItem('waveai_openai_key');
+        const anthropicKey = localStorage.getItem('waveai_anthropic_key');
+        
+        const openaiStatus = document.getElementById('openaiStatus');
+        const anthropicStatus = document.getElementById('anthropicStatus');
+        const offlineStatus = document.getElementById('offlineStatus');
+        
+        // OpenAI
+        if (openaiKey && openaiKey.length > 40) {
+            openaiStatus.classList.add('connected');
+        } else {
+            openaiStatus.classList.remove('connected');
+        }
+        
+        // Anthropic
+        if (anthropicKey && anthropicKey.length > 50) {
+            anthropicStatus.classList.add('connected');
+        } else {
+            anthropicStatus.classList.remove('connected');
+        }
+        
+        // IA hors ligne toujours disponible
+        offlineStatus.classList.add('connected');
+    }
+    
+    // Fonction pour défiler vers le bas
     function scrollToBottom() {
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }
@@ -114,21 +413,38 @@ document.addEventListener('DOMContentLoaded', function() {
     // Fonction pour envoyer un message
     async function sendMessage() {
         const message = messageInput.value.trim();
-        if (!message) return;
+        if (!message && !currentDocument) return;
+        
+        let fullMessage = message;
+        if (currentDocument) {
+            fullMessage = `[Document: ${currentDocument.name}]\n${currentDocument.content}\n\nQuestion: ${message}`;
+        }
         
         // Ajouter le message de l'utilisateur
-        addMessage(message, true);
+        addMessage(currentDocument ? `📄 ${message}` : message, true);
         messageInput.value = '';
+        adjustTextareaHeight();
+        
+        // Masquer preview document
+        if (currentDocument) {
+            docPreview.classList.add('hidden');
+            currentDocument = null;
+        }
         
         // Afficher l'indicateur de chargement
         loadingIndicator.classList.remove('hidden');
         sendButton.disabled = true;
-        sendButton.textContent = 'Envoi...';
+        sendIcon.textContent = '⏳';
         
         try {
-            // Récupérer les clés API du localStorage
-            const openaiKey = localStorage.getItem('waveai_openai_key') || '';
-            const anthropicKey = localStorage.getItem('waveai_anthropic_key') || '';
+            // Récupérer toutes les clés API possibles
+            const apiKeys = {
+                openai_key: localStorage.getItem('waveai_openai_key') || '',
+                anthropic_key: localStorage.getItem('waveai_anthropic_key') || '',
+                gemini: localStorage.getItem('waveai_gemini_key') || '',
+                mistral: localStorage.getItem('waveai_mistral_key') || '',
+                cohere: localStorage.getItem('waveai_cohere_key') || ''
+            };
             
             // Envoyer la requête à l'API
             const response = await fetch('/api/chat', {
@@ -137,10 +453,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    message: message,
+                    message: fullMessage,
                     agent: agent,
-                    openai_key: openaiKey,
-                    anthropic_key: anthropicKey
+                    ...apiKeys
                 })
             });
             
@@ -149,35 +464,134 @@ document.addEventListener('DOMContentLoaded', function() {
             if (response.ok) {
                 // Ajouter la réponse de l'agent
                 addMessage(data.response);
+                
+                // Mettre à jour les indicateurs API si disponible
+                if (data.apis_tried && data.apis_tried.length > 0) {
+                    console.log('APIs utilisées:', data.apis_tried);
+                }
             } else {
-                addMessage('Désolé, une erreur s\'est produite. Veuillez réessayer.');
+                addMessage('❌ Désolé, une erreur s\'est produite. Vérifiez vos clés API dans Configuration.');
             }
         } catch (error) {
             console.error('Erreur:', error);
-            addMessage('Erreur de connexion. Vérifiez votre connexion internet et vos clés API dans les paramètres.');
+            addMessage('🔄 Connexion difficile. L\'IA hors ligne prend le relais...');
         } finally {
             // Masquer l'indicateur de chargement
             loadingIndicator.classList.add('hidden');
             sendButton.disabled = false;
-            sendButton.textContent = 'Envoyer';
+            sendIcon.textContent = '📤';
             messageInput.focus();
         }
     }
     
+    // Fonction pour traiter un document
+    function processDocument(file) {
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            currentDocument = {
+                name: file.name,
+                content: e.target.result,
+                type: file.type
+            };
+            
+            docName.textContent = file.name;
+            docPreview.classList.remove('hidden');
+            messageInput.placeholder = `Document "${file.name}" importé. Posez votre question...`;
+            messageInput.focus();
+        };
+        
+        if (file.type.includes('text') || file.name.endsWith('.txt')) {
+            reader.readAsText(file);
+        } else {
+            // Pour les autres types, on simule le contenu
+            currentDocument = {
+                name: file.name,
+                content: `[Fichier ${file.type}: ${file.name} - ${Math.round(file.size/1024)}KB]`,
+                type: file.type
+            };
+            
+            docName.textContent = file.name;
+            docPreview.classList.remove('hidden');
+            messageInput.placeholder = `Document "${file.name}" importé. Posez votre question...`;
+            messageInput.focus();
+        }
+    }
+    
+    // Function notification
+    function showNotification(message, type = 'info') {
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            background: ${type === 'error' ? '#e74c3c' : '#27ae60'};
+            color: white;
+            border-radius: 5px;
+            font-weight: bold;
+            z-index: 9999;
+            max-width: 300px;
+        `;
+        notification.textContent = message;
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.remove();
+        }, 4000);
+    }
+    
     // Event listeners
+    micButton.addEventListener('click', function() {
+        if (!recognition) {
+            showNotification('Reconnaissance vocale non supportée sur ce navigateur.', 'error');
+            return;
+        }
+        
+        if (isRecording) {
+            recognition.stop();
+        } else {
+            recognition.start();
+        }
+    });
+    
+    docButton.addEventListener('click', function() {
+        fileInput.click();
+    });
+    
+    fileInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            processDocument(file);
+        }
+    });
+    
+    removeDoc.addEventListener('click', function() {
+        currentDocument = null;
+        docPreview.classList.add('hidden');
+        messageInput.placeholder = "Tapez votre message ou utilisez le micro...";
+        fileInput.value = '';
+    });
+    
     sendButton.addEventListener('click', sendMessage);
     
     messageInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
             sendMessage();
         }
     });
     
-    // Focus sur l'input au chargement
-    messageInput.focus();
+    messageInput.addEventListener('input', adjustTextareaHeight);
     
-    // Scroll initial
+    // Initialisation
+    updateAPIStatus();
+    messageInput.focus();
     scrollToBottom();
+    
+    // Mise à jour périodique du statut
+    setInterval(updateAPIStatus, 5000);
 });
 </script>
 {% endblock %}
