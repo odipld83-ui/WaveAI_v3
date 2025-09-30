@@ -4,7 +4,7 @@ services:
     env: python
     plan: free
     buildCommand: pip install -r requirements.txt
-    startCommand: python waveai_v2_simple.py
+    startCommand: python app.py           # ← CHANGÉ ici
     envVars:
       - key: SECRET_KEY
         generateValue: true
