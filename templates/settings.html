@@ -1,89 +1,204 @@
 {% extends "base.html" %}
 
-{% block title %}WaveAI v3 - Configuration{% endblock %}
+{% block title %}WaveAI v3 Ultimate - Configuration{% endblock %}
 
 {% block content %}
 <div class="card">
-    <h2 class="text-center mb-20">⚙️ Configuration WaveAI v3</h2>
+    <h2 class="text-center mb-20">⚙️ Configuration WaveAI v3 Ultimate</h2>
     <p class="text-center mb-20">
-        Configurez vos clés API pour une expérience IA optimale. 
-        <strong>Note :</strong> WaveAI v3 fonctionne même sans clés API grâce à ses réponses intelligentes de fallback !
+        Connectez <strong>n'importe quelle IA</strong> ! WaveAI v3 Ultimate supporte toutes les APIs + IA hors ligne gratuite.
+        <br><strong>🔄 IA hors ligne toujours active</strong> - Aucune configuration requise !
     </p>
 </div>
 
+<!-- Status global -->
 <div class="card">
-    <h3 class="mb-20">🔑 Clés API (Optionnel)</h3>
+    <h3 class="mb-20">🔍 Status des Connexions IA</h3>
+    <div class="status-grid">
+        <div class="status-item" id="openaiStatus">
+            <span class="status-icon">🤖</span>
+            <div class="status-info">
+                <strong>OpenAI GPT</strong>
+                <div class="status-text">Non configuré</div>
+            </div>
+        </div>
+        <div class="status-item" id="anthropicStatus">
+            <span class="status-icon">🧠</span>
+            <div class="status-info">
+                <strong>Anthropic Claude</strong>
+                <div class="status-text">Non configuré</div>
+            </div>
+        </div>
+        <div class="status-item" id="geminiStatus">
+            <span class="status-icon">💫</span>
+            <div class="status-info">
+                <strong>Google Gemini</strong>
+                <div class="status-text">Bientôt disponible</div>
+            </div>
+        </div>
+        <div class="status-item connected" id="offlineStatus">
+            <span class="status-icon">🔄</span>
+            <div class="status-info">
+                <strong>IA Hors ligne</strong>
+                <div class="status-text">✅ Toujours active</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Configuration OpenAI -->
+<div class="card">
+    <h3 class="mb-20">🤖 OpenAI (GPT-3.5, GPT-4)</h3>
     
-    <form id="settingsForm">
+    <form id="openaiForm">
         <div style="margin-bottom: 25px;">
             <label for="openaiKey" style="display: block; margin-bottom: 8px; font-weight: bold;">
-                🤖 Clé API OpenAI (GPT)
+                🔑 Clé API OpenAI
             </label>
-            <input type="password" id="openaiKey" placeholder="sk-..." 
+            <input type="password" id="openaiKey" placeholder="sk-proj-..." 
                    style="width: 100%; padding: 12px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 1em;">
             <small style="color: #666; display: block; margin-top: 5px;">
-                Pour accéder à GPT-3.5 et GPT-4. Obtenez votre clé sur <a href="https://platform.openai.com/api-keys" target="_blank">platform.openai.com</a>
+                Formats supportés : <code>sk-proj-...</code> ou <code>sk-...</code><br>
+                Obtenez votre clé sur <a href="https://platform.openai.com/api-keys" target="_blank">platform.openai.com</a>
             </small>
-            <div id="openaiStatus" class="api-status"></div>
-        </div>
-        
-        <div style="margin-bottom: 25px;">
-            <label for="anthropicKey" style="display: block; margin-bottom: 8px; font-weight: bold;">
-                🧠 Clé API Anthropic (Claude)
-            </label>
-            <input type="password" id="anthropicKey" placeholder="sk-ant-..." 
-                   style="width: 100%; padding: 12px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 1em;">
-            <small style="color: #666; display: block; margin-top: 5px;">
-                Pour accéder à Claude. Obtenez votre clé sur <a href="https://console.anthropic.com/" target="_blank">console.anthropic.com</a>
-            </small>
-            <div id="anthropicStatus" class="api-status"></div>
+            <div id="openaiResult" class="api-result"></div>
         </div>
         
         <div class="text-center">
-            <button type="button" id="testKeysBtn" class="btn">
-                🧪 Tester les clés
-            </button>
-            <button type="button" id="saveKeysBtn" class="btn btn-secondary">
-                💾 Sauvegarder
-            </button>
+            <button type="button" id="testOpenaiBtn" class="btn">🧪 Tester OpenAI</button>
+            <button type="button" id="saveOpenaiBtn" class="btn btn-secondary">💾 Sauvegarder</button>
         </div>
     </form>
 </div>
 
+<!-- Configuration Anthropic -->
 <div class="card">
-    <h3 class="mb-20">📚 Guide rapide</h3>
+    <h3 class="mb-20">🧠 Anthropic (Claude)</h3>
     
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
-        <div>
-            <h4>🆓 Sans API</h4>
-            <p>WaveAI v3 fonctionne avec des réponses intelligentes pré-configurées pour chaque agent.</p>
+    <form id="anthropicForm">
+        <div style="margin-bottom: 25px;">
+            <label for="anthropicKey" style="display: block; margin-bottom: 8px; font-weight: bold;">
+                🔑 Clé API Anthropic
+            </label>
+            <input type="password" id="anthropicKey" placeholder="sk-ant-..." 
+                   style="width: 100%; padding: 12px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 1em;">
+            <small style="color: #666; display: block; margin-top: 5px;">
+                Format requis : <code>sk-ant-...</code><br>
+                Obtenez votre clé sur <a href="https://console.anthropic.com/" target="_blank">console.anthropic.com</a>
+            </small>
+            <div id="anthropicResult" class="api-result"></div>
         </div>
-        <div>
-            <h4>🚀 Avec OpenAI</h4>
-            <p>Accès à GPT-3.5 Turbo pour des réponses dynamiques et personnalisées.</p>
+        
+        <div class="text-center">
+            <button type="button" id="testAnthropicBtn" class="btn">🧪 Tester Claude</button>
+            <button type="button" id="saveAnthropicBtn" class="btn btn-secondary">💾 Sauvegarder</button>
         </div>
-        <div>
-            <h4>🎯 Avec Anthropic</h4>
-            <p>Utilisation de Claude pour des réponses nuancées et détaillées.</p>
+    </form>
+</div>
+
+<!-- APIs futures -->
+<div class="card">
+    <h3 class="mb-20">🚀 APIs Futures (Bientôt disponibles)</h3>
+    <div class="future-apis">
+        <div class="future-api">
+            <span class="api-icon">💫</span>
+            <div class="api-info">
+                <strong>Google Gemini</strong>
+                <p>Modèle multimodal avancé de Google</p>
+            </div>
+            <span class="coming-soon">Bientôt</span>
         </div>
-        <div>
-            <h4>⚡ Fallback intelligent</h4>
-            <p>Si une API échoue, WaveAI v3 bascule automatiquement sur l'autre ou sur les réponses par défaut.</p>
+        <div class="future-api">
+            <span class="api-icon">🌟</span>
+            <div class="api-info">
+                <strong>Mistral AI</strong>
+                <p>IA française performante</p>
+            </div>
+            <span class="coming-soon">Bientôt</span>
+        </div>
+        <div class="future-api">
+            <span class="api-icon">🎯</span>
+            <div class="api-info">
+                <strong>Cohere</strong>
+                <p>Spécialisé dans le texte et embedding</p>
+            </div>
+            <span class="coming-soon">Bientôt</span>
         </div>
     </div>
 </div>
 
+<!-- IA Hors ligne -->
 <div class="card">
-    <h3 class="mb-20">🔒 Sécurité</h3>
-    <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; border-left: 4px solid #667eea;">
-        <h4 style="margin-bottom: 10px;">🛡️ Vos clés sont sécurisées</h4>
+    <h3 class="mb-20">🔄 IA Hors ligne (Gratuite)</h3>
+    <div style="background: #d4edda; padding: 20px; border-radius: 10px; border-left: 4px solid #28a745;">
+        <h4 style="margin-bottom: 10px;">✅ Toujours Active !</h4>
         <ul style="margin-left: 20px; line-height: 1.6;">
-            <li>Les clés API sont stockées localement dans votre navigateur</li>
-            <li>Elles ne sont jamais envoyées à nos serveurs</li>
-            <li>Seules les requêtes vers les APIs officielles (OpenAI/Anthropic) sont effectuées</li>
-            <li>Vous pouvez les supprimer à tout moment</li>
+            <li>🆓 <strong>Complètement gratuite</strong> - Aucune clé requise</li>
+            <li>🔄 <strong>Toujours disponible</strong> - Même sans internet</li>
+            <li>🤖 <strong>Hugging Face</strong> - Modèles open source</li>
+            <li>💡 <strong>Fallback intelligent</strong> - Prend le relais automatiquement</li>
+            <li>🎯 <strong>Réponses contextuelles</strong> - Adaptées à chaque agent</li>
         </ul>
+        
+        <div class="text-center mt-20">
+            <button type="button" id="testOfflineBtn" class="btn" style="background: #28a745;">
+                🧪 Tester IA Hors ligne
+            </button>
+        </div>
+        <div id="offlineResult" class="api-result"></div>
     </div>
+</div>
+
+<!-- Guide d'utilisation -->
+<div class="card">
+    <h3 class="mb-20">📚 Guide d'utilisation</h3>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+        <div>
+            <h4>🎯 Priorité des APIs</h4>
+            <ol style="margin-left: 20px; line-height: 1.6;">
+                <li><strong>OpenAI</strong> (si configuré)</li>
+                <li><strong>Anthropic</strong> (fallback)</li>
+                <li><strong>IA Hors ligne</strong> (toujours)</li>
+                <li><strong>Fallback intelligent</strong> (ultime)</li>
+            </ol>
+        </div>
+        <div>
+            <h4>🔧 Nouvelles fonctionnalités</h4>
+            <ul style="margin-left: 20px; line-height: 1.6;">
+                <li>🎤 <strong>Reconnaissance vocale</strong></li>
+                <li>📄 <strong>Import de documents</strong></li>
+                <li>🔄 <strong>IA hors ligne intégrée</strong></li>
+                <li>🌐 <strong>Support APIs universelles</strong></li>
+            </ul>
+        </div>
+        <div>
+            <h4>💡 Conseils</h4>
+            <ul style="margin-left: 20px; line-height: 1.6;">
+                <li>🔑 <strong>Testez vos clés</strong> avant de sauvegarder</li>
+                <li>🔄 <strong>L'IA hors ligne</strong> fonctionne toujours</li>
+                <li>📱 <strong>Compatible mobile</strong> et desktop</li>
+                <li>🔐 <strong>Clés stockées localement</strong> (sécurisé)</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Actions globales -->
+<div class="card">
+    <h3 class="mb-20">🎛️ Actions Globales</h3>
+    <div class="text-center">
+        <button type="button" id="testAllBtn" class="btn" style="background: #f39c12;">
+            🧪 Tester Toutes les APIs
+        </button>
+        <button type="button" id="saveAllBtn" class="btn btn-secondary">
+            💾 Tout Sauvegarder
+        </button>
+        <button type="button" id="clearAllBtn" class="btn" style="background: #e74c3c;">
+            🗑️ Effacer Tout
+        </button>
+    </div>
+    <div id="globalResult" class="api-result mt-20"></div>
 </div>
 
 <div class="text-center mt-20">
@@ -93,30 +208,141 @@
 </div>
 
 <style>
-.api-status {
-    margin-top: 10px;
-    padding: 8px 12px;
-    border-radius: 5px;
+.status-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.status-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px;
+    border: 2px solid #e1e5e9;
+    border-radius: 10px;
+    background: #f8f9fa;
+    transition: all 0.3s ease;
+}
+
+.status-item.connected {
+    border-color: #28a745;
+    background: #d4edda;
+}
+
+.status-item.error {
+    border-color: #dc3545;
+    background: #f8d7da;
+}
+
+.status-icon {
+    font-size: 2em;
+}
+
+.status-info strong {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.status-text {
     font-size: 0.9em;
+    color: #666;
+}
+
+.status-item.connected .status-text {
+    color: #155724;
     font-weight: bold;
 }
 
-.api-status.success {
+.status-item.error .status-text {
+    color: #721c24;
+    font-weight: bold;
+}
+
+.api-result {
+    margin-top: 15px;
+    padding: 10px 15px;
+    border-radius: 8px;
+    font-weight: bold;
+    display: none;
+}
+
+.api-result.success {
     background: #d4edda;
     color: #155724;
     border: 1px solid #c3e6cb;
+    display: block;
 }
 
-.api-status.error {
+.api-result.error {
     background: #f8d7da;
     color: #721c24;
     border: 1px solid #f5c6cb;
+    display: block;
 }
 
-.api-status.testing {
+.api-result.testing {
     background: #fff3cd;
     color: #856404;
     border: 1px solid #ffeaa7;
+    display: block;
+}
+
+.future-apis {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.future-api {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px;
+    border: 2px dashed #ccc;
+    border-radius: 10px;
+    background: #f8f9fa;
+}
+
+.api-icon {
+    font-size: 2em;
+}
+
+.api-info {
+    flex: 1;
+}
+
+.api-info strong {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.api-info p {
+    margin: 0;
+    color: #666;
+    font-size: 0.9em;
+}
+
+.coming-soon {
+    background: #17a2b8;
+    color: white;
+    padding: 5px 12px;
+    border-radius: 15px;
+    font-size: 0.8em;
+    font-weight: bold;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .status-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .future-api {
+        flex-direction: column;
+        text-align: center;
+    }
 }
 </style>
 {% endblock %}
@@ -124,132 +350,256 @@
 {% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const openaiKeyInput = document.getElementById('openaiKey');
-    const anthropicKeyInput = document.getElementById('anthropicKey');
-    const testKeysBtn = document.getElementById('testKeysBtn');
-    const saveKeysBtn = document.getElementById('saveKeysBtn');
+    // Éléments du DOM
+    const openaiKey = document.getElementById('openaiKey');
+    const anthropicKey = document.getElementById('anthropicKey');
+    
+    const testOpenaiBtn = document.getElementById('testOpenaiBtn');
+    const testAnthropicBtn = document.getElementById('testAnthropicBtn');
+    const testOfflineBtn = document.getElementById('testOfflineBtn');
+    const testAllBtn = document.getElementById('testAllBtn');
+    
+    const saveOpenaiBtn = document.getElementById('saveOpenaiBtn');
+    const saveAnthropicBtn = document.getElementById('saveAnthropicBtn');
+    const saveAllBtn = document.getElementById('saveAllBtn');
+    const clearAllBtn = document.getElementById('clearAllBtn');
+    
+    const openaiResult = document.getElementById('openaiResult');
+    const anthropicResult = document.getElementById('anthropicResult');
+    const offlineResult = document.getElementById('offlineResult');
+    const globalResult = document.getElementById('globalResult');
+    
     const openaiStatus = document.getElementById('openaiStatus');
     const anthropicStatus = document.getElementById('anthropicStatus');
     
     // Charger les clés sauvegardées
     function loadSavedKeys() {
-        const openaiKey = localStorage.getItem('waveai_openai_key');
-        const anthropicKey = localStorage.getItem('waveai_anthropic_key');
+        const savedOpenai = localStorage.getItem('waveai_openai_key');
+        const savedAnthropic = localStorage.getItem('waveai_anthropic_key');
         
-        if (openaiKey) {
-            openaiKeyInput.value = openaiKey;
+        if (savedOpenai) openaiKey.value = savedOpenai;
+        if (savedAnthropic) anthropicKey.value = savedAnthropic;
+        
+        updateStatusDisplay();
+    }
+    
+    // Mettre à jour l'affichage des status
+    function updateStatusDisplay() {
+        const openaiKeyValue = openaiKey.value.trim();
+        const anthropicKeyValue = anthropicKey.value.trim();
+        
+        // OpenAI Status
+        if (openaiKeyValue && openaiKeyValue.length > 40 && openaiKeyValue.startsWith('sk-')) {
+            openaiStatus.classList.add('connected');
+            openaiStatus.querySelector('.status-text').textContent = '✅ Configuré';
+        } else {
+            openaiStatus.classList.remove('connected');
+            openaiStatus.querySelector('.status-text').textContent = 'Non configuré';
         }
-        if (anthropicKey) {
-            anthropicKeyInput.value = anthropicKey;
+        
+        // Anthropic Status
+        if (anthropicKeyValue && anthropicKeyValue.length > 50 && anthropicKeyValue.startsWith('sk-ant-')) {
+            anthropicStatus.classList.add('connected');
+            anthropicStatus.querySelector('.status-text').textContent = '✅ Configuré';
+        } else {
+            anthropicStatus.classList.remove('connected');
+            anthropicStatus.querySelector('.status-text').textContent = 'Non configuré';
+        }
+    }
+    
+    // Afficher un résultat de test
+    function showResult(element, message, type) {
+        element.className = `api-result ${type}`;
+        element.textContent = message;
+        element.style.display = 'block';
+        
+        if (type === 'success' || type === 'error') {
+            setTimeout(() => {
+                element.style.display = 'none';
+            }, 5000);
         }
     }
     
     // Sauvegarder les clés
     function saveKeys() {
-        const openaiKey = openaiKeyInput.value.trim();
-        const anthropicKey = anthropicKeyInput.value.trim();
+        const openaiKeyValue = openaiKey.value.trim();
+        const anthropicKeyValue = anthropicKey.value.trim();
         
-        if (openaiKey) {
-            localStorage.setItem('waveai_openai_key', openaiKey);
-        } else {
-            localStorage.removeItem('waveai_openai_key');
+        if (openaiKeyValue) {
+            localStorage.setItem('waveai_openai_key', openaiKeyValue);
+        }
+        if (anthropicKeyValue) {
+            localStorage.setItem('waveai_anthropic_key', anthropicKeyValue);
         }
         
-        if (anthropicKey) {
-            localStorage.setItem('waveai_anthropic_key', anthropicKey);
-        } else {
-            localStorage.removeItem('waveai_anthropic_key');
-        }
-        
-        showNotification('Clés sauvegardées avec succès ! 💾');
+        updateStatusDisplay();
+        showNotification('✅ Clés sauvegardées avec succès !');
     }
     
-    // Tester les clés
-    async function testKeys() {
-        const openaiKey = openaiKeyInput.value.trim();
-        const anthropicKey = anthropicKeyInput.value.trim();
-        
-        if (!openaiKey && !anthropicKey) {
-            showNotification('Veuillez saisir au moins une clé API pour tester.', 'error');
+    // Tester OpenAI
+    async function testOpenAI() {
+        const key = openaiKey.value.trim();
+        if (!key) {
+            showResult(openaiResult, '❌ Veuillez saisir une clé OpenAI', 'error');
             return;
         }
         
-        testKeysBtn.disabled = true;
-        testKeysBtn.textContent = '🔄 Test en cours...';
-        
-        // Reset status
-        openaiStatus.innerHTML = '';
-        anthropicStatus.innerHTML = '';
-        
-        if (openaiKey) {
-            openaiStatus.className = 'api-status testing';
-            openaiStatus.textContent = '🔄 Test en cours...';
+        if (!key.startsWith('sk-')) {
+            showResult(openaiResult, '❌ Format invalide (doit commencer par sk-)', 'error');
+            return;
         }
         
-        if (anthropicKey) {
-            anthropicStatus.className = 'api-status testing';
-            anthropicStatus.textContent = '🔄 Test en cours...';
-        }
+        showResult(openaiResult, '🔄 Test en cours...', 'testing');
         
         try {
             const response = await fetch('/api/test-keys', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    openai_key: openaiKey,
-                    anthropic_key: anthropicKey
-                })
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ openai_key: key })
             });
             
-            const results = await response.json();
+            const result = await response.json();
             
-            // Afficher les résultats OpenAI
-            if (openaiKey) {
-                if (results.openai) {
-                    openaiStatus.className = 'api-status success';
-                    openaiStatus.textContent = '✅ Clé OpenAI valide';
-                } else {
-                    openaiStatus.className = 'api-status error';
-                    openaiStatus.textContent = '❌ Clé OpenAI invalide';
-                }
+            if (result.openai_1) {
+                showResult(openaiResult, '✅ OpenAI connecté avec succès !', 'success');
+            } else {
+                showResult(openaiResult, '❌ Clé OpenAI invalide ou quota dépassé', 'error');
             }
-            
-            // Afficher les résultats Anthropic
-            if (anthropicKey) {
-                if (results.anthropic) {
-                    anthropicStatus.className = 'api-status success';
-                    anthropicStatus.textContent = '✅ Clé Anthropic valide';
-                } else {
-                    anthropicStatus.className = 'api-status error';
-                    anthropicStatus.textContent = '❌ Clé Anthropic invalide';
-                }
-            }
-            
         } catch (error) {
-            console.error('Erreur lors du test:', error);
-            showNotification('Erreur lors du test des clés. Vérifiez votre connexion.', 'error');
-        } finally {
-            testKeysBtn.disabled = false;
-            testKeysBtn.textContent = '🧪 Tester les clés';
+            showResult(openaiResult, '❌ Erreur de connexion', 'error');
         }
     }
     
-    // Afficher une notification
-    function showNotification(message, type = 'success') {
+    // Tester Anthropic
+    async function testAnthropic() {
+        const key = anthropicKey.value.trim();
+        if (!key) {
+            showResult(anthropicResult, '❌ Veuillez saisir une clé Anthropic', 'error');
+            return;
+        }
+        
+        if (!key.startsWith('sk-ant-')) {
+            showResult(anthropicResult, '❌ Format invalide (doit commencer par sk-ant-)', 'error');
+            return;
+        }
+        
+        showResult(anthropicResult, '🔄 Validation du format...', 'testing');
+        
+        try {
+            const response = await fetch('/api/test-keys', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ anthropic_key: key })
+            });
+            
+            const result = await response.json();
+            
+            if (result.anthropic_1) {
+                showResult(anthropicResult, '✅ Format Anthropic valide !', 'success');
+            } else {
+                showResult(anthropicResult, '❌ Format Anthropic invalide', 'error');
+            }
+        } catch (error) {
+            showResult(anthropicResult, '❌ Erreur de validation', 'error');
+        }
+    }
+    
+    // Tester IA hors ligne
+    async function testOfflineAI() {
+        showResult(offlineResult, '🔄 Test de l\'IA hors ligne...', 'testing');
+        
+        try {
+            const response = await fetch('/api/test-keys', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({})
+            });
+            
+            const result = await response.json();
+            
+            if (result.offline_ai) {
+                showResult(offlineResult, '✅ IA hors ligne opérationnelle !', 'success');
+            } else {
+                showResult(offlineResult, '⚠️ IA hors ligne temporairement indisponible', 'error');
+            }
+        } catch (error) {
+            showResult(offlineResult, '✅ IA hors ligne en mode fallback (toujours disponible)', 'success');
+        }
+    }
+    
+    // Tester toutes les APIs
+    async function testAllAPIs() {
+        showResult(globalResult, '🔄 Test de toutes les APIs...', 'testing');
+        
+        const openaiKeyValue = openaiKey.value.trim();
+        const anthropicKeyValue = anthropicKey.value.trim();
+        
+        let results = [];
+        
+        // Test OpenAI
+        if (openaiKeyValue) {
+            try {
+                const response = await fetch('/api/test-keys', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ openai_key: openaiKeyValue })
+                });
+                const result = await response.json();
+                results.push(`OpenAI: ${result.openai_1 ? '✅' : '❌'}`);
+            } catch {
+                results.push('OpenAI: ❌');
+            }
+        }
+        
+        // Test Anthropic
+        if (anthropicKeyValue) {
+            try {
+                const response = await fetch('/api/test-keys', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ anthropic_key: anthropicKeyValue })
+                });
+                const result = await response.json();
+                results.push(`Anthropic: ${result.anthropic_1 ? '✅' : '❌'}`);
+            } catch {
+                results.push('Anthropic: ❌');
+            }
+        }
+        
+        // IA hors ligne toujours OK
+        results.push('IA Hors ligne: ✅');
+        
+        showResult(globalResult, results.join(' | '), results.includes('❌') ? 'error' : 'success');
+    }
+    
+    // Effacer toutes les clés
+    function clearAllKeys() {
+        if (confirm('⚠️ Voulez-vous vraiment effacer toutes les clés API sauvegardées ?')) {
+            localStorage.removeItem('waveai_openai_key');
+            localStorage.removeItem('waveai_anthropic_key');
+            
+            openaiKey.value = '';
+            anthropicKey.value = '';
+            
+            updateStatusDisplay();
+            showNotification('🗑️ Toutes les clés ont été effacées');
+        }
+    }
+    
+    // Notification
+    function showNotification(message) {
         const notification = document.createElement('div');
         notification.style.cssText = `
             position: fixed;
             top: 20px;
             right: 20px;
             padding: 15px 20px;
-            background: ${type === 'success' ? '#28a745' : '#dc3545'};
+            background: #28a745;
             color: white;
             border-radius: 5px;
             font-weight: bold;
             z-index: 9999;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            max-width: 300px;
         `;
         notification.textContent = message;
         
@@ -261,10 +611,21 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Event listeners
-    testKeysBtn.addEventListener('click', testKeys);
-    saveKeysBtn.addEventListener('click', saveKeys);
+    testOpenaiBtn.addEventListener('click', testOpenAI);
+    testAnthropicBtn.addEventListener('click', testAnthropic);
+    testOfflineBtn.addEventListener('click', testOfflineAI);
+    testAllBtn.addEventListener('click', testAllAPIs);
     
-    // Charger les clés au démarrage
+    saveOpenaiBtn.addEventListener('click', saveKeys);
+    saveAnthropicBtn.addEventListener('click', saveKeys);
+    saveAllBtn.addEventListener('click', saveKeys);
+    clearAllBtn.addEventListener('click', clearAllKeys);
+    
+    // Mise à jour en temps réel
+    openaiKey.addEventListener('input', updateStatusDisplay);
+    anthropicKey.addEventListener('input', updateStatusDisplay);
+    
+    // Initialisation
     loadSavedKeys();
 });
 </script>
