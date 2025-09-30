@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+
+{% block title %}WaveAI - Chat avec {{ agent.title() }}{% endblock %}
+
+{% block content %}
+<div class="chat-container">
+    <div class="card">
+        <!-- En-tête de l'agent -->
+        <div class="text-center mb-20">
+            {% if agent == 'alex' %}
+                <div class="agent-emoji">📧</div>
+                <h2>Alex - Assistant Productivité</h2>
+                <p>Je vous aide avec Gmail, emails et tâches professionnelles</p>
+            {% elif agent == 'lina' %}
+                <div class="agent-emoji">💼</div>
+                <h2>Lina - Experte LinkedIn</h2>
+                <p>Spécialisée en networking et stratégie professionnelle</p>
+            {% elif agent == 'marco' %}
+                <div class="agent-emoji">📱</div>
+                <h2>Marco - Expert Réseaux Sociaux</h2>
+                <p>Je crée du contenu viral et optimise votre présence sociale</p>
+            {% elif agent == 'sofia' %}
+                <div class="agent-emoji">📅</div>
+                <h2>Sofia - Assistante Organisation</h2>
+                <p>Gestion de calendrier, planning et organisation</p>
+            {% elif agent == 'kai' %}
+                <div class="agent-emoji">💬</div>
+                <h2>Kai - Assistant Conversationnel</h2>
+                <p>Discussion naturelle et support général</p>
+            {% endif %}
+        </div>
+        
+        <!-- Zone de chat -->
+        <div class="chat-messages" id="chatMessages">
+            <div class="message agent">
+                <strong>
+                    {% if agent == 'alex' %}
+                        Alex
+                    {% elif agent == 'lina' %}
+                        Lina
+                    {% elif agent == 'marco' %}
+                        Marco
+                    {% elif agent == 'sofia' %}
+                        Sofia
+                    {% elif agent == 'kai' %}
+                        Kai
+                    {% endif %}
+                </strong>: 
+                {% if agent == 'alex' %}
+                    Salut ! Je suis Alex, votre assistant productivité. Comment puis-je vous aider avec vos emails ou tâches professionnelles aujourd'hui ? 📧
+                {% elif agent == 'lina' %}
+                    Bonjour ! Je suis Lina, votre experte LinkedIn. Prêt(e) à booster votre réseau professionnel ? 💼
+                {% elif agent == 'marco' %}
+                    Hey ! Marco ici, votre expert réseaux sociaux. Créons du contenu qui cartonne ! 📱
+                {% elif agent == 'sofia' %}
+                    Salut ! Sofia à votre service pour organiser votre quotidien. Qu'avez-vous à planifier ? 📅
+                {% elif agent == 'kai' %}
+                    Salut ! Je suis Kai, ravi de discuter avec vous. De quoi voulez-vous parler ? 💬
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Zone de saisie -->
+        <div class="chat-input">
+            <input type="text" id="messageInput" placeholder="Tapez votre message..." />
+            <button type="button" id="sendButton" class="btn">Envoyer</button>
+        </div>
+        
+        <!-- Indicateur de chargement -->
+        <div id="loadingIndicator" class="text-center mt-20 hidden">
+            <p>🤔 {{ agent.title() }} réfléchit...</p>
+        </div>
+    </div>
+    
+    <!-- Bouton retour -->
+    <div class="text-center mt-20">
+        <a href="{{ url_for('index') }}" class="btn btn-secondary">
+            ← Retour aux agents
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const messageInput = document.getElementById('messageInput');
+    const sendButton = document.getElementById('sendButton');
+    const chatMessages = document.getElementById('chatMessages');
+    const loadingIndicator = document.getElementById('loadingIndicator');
+    const agent = '{{ agent }}';
+    
+    // Fonction pour faire défiler vers le bas
+    function scrollToBottom() {
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+    
+    // Fonction pour ajouter un message
+    function addMessage(content, isUser = false) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = isUser ? 'message user' : 'message agent';
+        
+        if (isUser) {
+            messageDiv.innerHTML = `<strong>Vous</strong>: ${content}`;
+        } else {
+            const agentName = agent.charAt(0).toUpperCase() + agent.slice(1);
+            messageDiv.innerHTML = `<strong>${agentName}</strong>: ${content}`;
+        }
+        
+        chatMessages.appendChild(messageDiv);
+        scrollToBottom();
+    }
+    
+    // Fonction pour envoyer un message
+    async function sendMessage() {
+        const message = messageInput.value.trim();
+        if (!message) return;
+        
+        // Ajouter le message de l'utilisateur
+        addMessage(message, true);
+        messageInput.value = '';
+        
+        // Afficher l'indicateur de chargement
+        loadingIndicator.classList.remove('hidden');
+        sendButton.disabled = true;
+        sendButton.textContent = 'Envoi...';
+        
+        try {
+            // Récupérer les clés API du localStorage
+            const openaiKey = localStorage.getItem('waveai_openai_key') || '';
+            const anthropicKey = localStorage.getItem('waveai_anthropic_key') || '';
+            
+            // Envoyer la requête à l'API
+            const response = await fetch('/api/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    message: message,
+                    agent: agent,
+                    openai_key: openaiKey,
+                    anthropic_key: anthropicKey
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok) {
+                // Ajouter la réponse de l'agent
+                addMessage(data.response);
+            } else {
+                addMessage('Désolé, une erreur s\'est produite. Veuillez réessayer.');
+            }
+        } catch (error) {
+            console.error('Erreur:', error);
+            addMessage('Erreur de connexion. Vérifiez votre connexion internet et vos clés API dans les paramètres.');
+        } finally {
+            // Masquer l'indicateur de chargement
+            loadingIndicator.classList.add('hidden');
+            sendButton.disabled = false;
+            sendButton.textContent = 'Envoyer';
+            messageInput.focus();
+        }
+    }
+    
+    // Event listeners
+    sendButton.addEventListener('click', sendMessage);
+    
+    messageInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            sendMessage();
+        }
+    });
+    
+    // Focus sur l'input au chargement
+    messageInput.focus();
+    
+    // Scroll initial
+    scrollToBottom();
+});
+</script>
+{% endblock %}

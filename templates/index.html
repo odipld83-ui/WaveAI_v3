@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block title %}WaveAI v3 - Accueil{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2 class="text-center mb-20">🌊 Bienvenue sur WaveAI v3</h2>
+    <p class="text-center mb-20">Découvrez nos 5 agents IA spécialisés, chacun expert dans son domaine pour vous accompagner au quotidien.</p>
+    
+    <div class="agents-grid">
+        <a href="{{ url_for('chat_page', agent='alex') }}" class="agent-card">
+            <span class="agent-emoji">📧</span>
+            <div class="agent-name">Alex</div>
+            <div class="agent-description">
+                Assistant productivité<br>
+                Gestion des emails, Gmail et tâches professionnelles
+            </div>
+        </a>
+        
+        <a href="{{ url_for('chat_page', agent='lina') }}" class="agent-card">
+            <span class="agent-emoji">💼</span>
+            <div class="agent-name">Lina</div>
+            <div class="agent-description">
+                Experte LinkedIn<br>
+                Networking, posts LinkedIn, stratégie professionnelle
+            </div>
+        </a>
+        
+        <a href="{{ url_for('chat_page', agent='marco') }}" class="agent-card">
+            <span class="agent-emoji">📱</span>
+            <div class="agent-name">Marco</div>
+            <div class="agent-description">
+                Expert réseaux sociaux<br>
+                Contenu viral, stratégie social media
+            </div>
+        </a>
+        
+        <a href="{{ url_for('chat_page', agent='sofia') }}" class="agent-card">
+            <span class="agent-emoji">📅</span>
+            <div class="agent-name">Sofia</div>
+            <div class="agent-description">
+                Assistante organisation<br>
+                Calendrier, planning, rappels et gestion du temps
+            </div>
+        </a>
+        
+        <a href="{{ url_for('chat_page', agent='kai') }}" class="agent-card">
+            <span class="agent-emoji">💬</span>
+            <div class="agent-name">Kai</div>
+            <div class="agent-description">
+                Assistant conversationnel<br>
+                Discussion naturelle, conseils et support général
+            </div>
+        </a>
+    </div>
+</div>
+
+<div class="card">
+    <h3 class="text-center mb-20">🚀 Comment ça marche ?</h3>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; text-align: center;">
+        <div>
+            <div style="font-size: 2em; margin-bottom: 10px;">1️⃣</div>
+            <strong>Choisissez votre agent</strong><br>
+            <small>Sélectionnez l'expert qui correspond à vos besoins</small>
+        </div>
+        <div>
+            <div style="font-size: 2em; margin-bottom: 10px;">2️⃣</div>
+            <strong>Posez vos questions</strong><br>
+            <small>Discutez naturellement avec votre agent IA</small>
+        </div>
+        <div>
+            <div style="font-size: 2em; margin-bottom: 10px;">3️⃣</div>
+            <strong>Obtenez des réponses</strong><br>
+            <small>Recevez des conseils personnalisés et expertisés</small>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <h3 class="text-center mb-20">⚙️ Configuration rapide</h3>
+    <p class="text-center mb-20">
+        Pour une expérience optimale, configurez vos clés API dans les paramètres. 
+        WaveAI v3 fonctionne avec des réponses intelligentes même sans configuration !
+    </p>
+    <div class="text-center">
+        <a href="{{ url_for('settings') }}" class="btn btn-secondary">
+            Configurer maintenant
+        </a>
+    </div>
+</div>
+
+<div class="card">
+    <h3 class="text-center mb-20">✨ Fonctionnalités</h3>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+        <div>
+            <h4>🤖 IA Avancée</h4>
+            <p>Agents alimentés par GPT et Claude pour des réponses de qualité</p>
+        </div>
+        <div>
+            <h4>🔄 Fallback Intelligent</h4>
+            <p>Réponses utiles même sans clés API configurées</p>
+        </div>
+        <div>
+            <h4>🎯 Spécialisés</h4>
+            <p>Chaque agent est expert dans son domaine spécifique</p>
+        </div>
+        <div>
+            <h4>📱 Responsive</h4>
+            <p>Interface adaptée à tous vos appareils</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
