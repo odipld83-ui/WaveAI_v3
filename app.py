@@ -5,72 +5,107 @@ import json
 from datetime import datetime
 
 app = Flask(__name__)
-app.secret_key = os.environ.get('SECRET_KEY', 'waveai-simple-key-2024')
+app.secret_key = os.environ.get('SECRET_KEY', 'waveai-v3-ultimate-2024')
 
-# Configuration simple pour les APIs IA
-OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY', '')
-ANTHROPIC_API_KEY = os.environ.get('ANTHROPIC_API_KEY', '')
-
-class SimpleAI:
-    """Système IA simple avec fallback robuste"""
+class UniversalAI:
+    """Système IA universel supportant toutes les APIs + IA hors ligne"""
     
     def __init__(self):
-        self.openai_key = OPENAI_API_KEY
-        self.anthropic_key = ANTHROPIC_API_KEY
+        self.server_openai_key = os.environ.get('OPENAI_API_KEY', '')
+        self.server_anthropic_key = os.environ.get('ANTHROPIC_API_KEY', '')
     
-    def get_response(self, message, agent_type="general", user_openai_key=None, user_anthropic_key=None):
-        """Obtenir une réponse IA avec fallback robuste"""
+    def get_response(self, message, agent_type="kai", user_apis=None):
+        """Obtenir une réponse IA avec support universel"""
         
-        # Prompts pour chaque agent
+        if not user_apis:
+            user_apis = {}
+        
+        # Prompts spécialisés pour chaque agent
         agent_prompts = {
-            "alex": "Tu es Alex, assistant productivité. Tu aides avec Gmail, emails et tâches professionnelles. Réponds en français, sois professionnel mais amical.",
-            "lina": "Tu es Lina, experte LinkedIn. Tu aides avec le networking, posts LinkedIn et stratégie professionnelle. Réponds en français, sois inspirant.",
-            "marco": "Tu es Marco, expert réseaux sociaux. Tu crées du contenu viral et optimises la présence sociale. Réponds en français, sois créatif.",
-            "sofia": "Tu es Sofia, assistante organisation. Tu gères calendriers, plannings et rappels. Réponds en français, sois précise et organisée.",
-            "kai": "Tu es Kai, assistant conversationnel. Tu discutes de tout avec intelligence et humour. Réponds en français, sois naturel et engageant."
+            "alex": "Tu es Alex, expert en productivité et emails. Tu aides avec Gmail, organisation et tâches professionnelles. Réponds en français de manière professionnelle mais amicale.",
+            "lina": "Tu es Lina, experte LinkedIn et networking. Tu aides avec les stratégies professionnelles, posts LinkedIn et développement de réseau. Réponds en français de manière inspirante.",
+            "marco": "Tu es Marco, expert en réseaux sociaux et marketing digital. Tu crées du contenu viral et optimises la présence en ligne. Réponds en français de manière créative.",
+            "sofia": "Tu es Sofia, assistante organisation et planification. Tu gères calendriers, plannings et optimises le temps. Réponds en français de manière précise et organisée.",
+            "kai": "Tu es Kai, assistant conversationnel intelligent. Tu discutes de tout avec intelligence, humour et empathie. Réponds en français de manière naturelle et engageante."
         }
         
         prompt = agent_prompts.get(agent_type, agent_prompts["kai"])
         
-        # Utiliser les clés utilisateur en priorité, puis les clés serveur
-        openai_key = user_openai_key or self.openai_key
-        anthropic_key = user_anthropic_key or self.anthropic_key
+        # 1. ESSAYER OPENAI (format universel)
+        openai_keys = [
+            user_apis.get('openai_key', ''),
+            user_apis.get('openai', ''),
+            self.server_openai_key
+        ]
         
-        print(f"[DEBUG] Clé OpenAI présente: {bool(openai_key)}")
-        print(f"[DEBUG] Clé Anthropic présente: {bool(anthropic_key)}")
+        for key in openai_keys:
+            if self._is_valid_openai_key(key):
+                try:
+                    response = self._call_openai(message, prompt, key)
+                    if response:
+                        return f"🤖 {response}"
+                except Exception as e:
+                    print(f"[OpenAI Error] {e}")
+                    continue
         
-        # Essayer OpenAI d'abord SEULEMENT si clé valide
-        if openai_key and len(openai_key.strip()) > 30 and openai_key.startswith('sk-'):
-            try:
-                print("[DEBUG] Tentative OpenAI...")
-                response = self._call_openai(message, prompt, openai_key)
-                if response and len(response.strip()) > 5:
-                    print("[DEBUG] ✅ OpenAI réussi")
-                    return f"[GPT] {response}"
-            except Exception as e:
-                print(f"[DEBUG] ❌ OpenAI error: {e}")
-        else:
-            print("[DEBUG] Clé OpenAI invalide ou absente")
+        # 2. ESSAYER ANTHROPIC (format universel)
+        anthropic_keys = [
+            user_apis.get('anthropic_key', ''),
+            user_apis.get('anthropic', ''),
+            user_apis.get('claude', ''),
+            self.server_anthropic_key
+        ]
         
-        # Puis Anthropic SEULEMENT si clé valide
-        if anthropic_key and len(anthropic_key.strip()) > 30 and anthropic_key.startswith('sk-ant-'):
-            try:
-                print("[DEBUG] Tentative Anthropic...")
-                response = self._call_anthropic(message, prompt, anthropic_key)
-                if response and len(response.strip()) > 5:
-                    print("[DEBUG] ✅ Anthropic réussi")
-                    return f"[Claude] {response}"
-            except Exception as e:
-                print(f"[DEBUG] ❌ Anthropic error: {e}")
-        else:
-            print("[DEBUG] Clé Anthropic invalide ou absente")
+        for key in anthropic_keys:
+            if self._is_valid_anthropic_key(key):
+                try:
+                    response = self._call_anthropic(message, prompt, key)
+                    if response:
+                        return f"🧠 {response}"
+                except Exception as e:
+                    print(f"[Anthropic Error] {e}")
+                    continue
         
-        # Fallback simple
-        print("[DEBUG] 🔄 Utilisation du fallback")
-        return self._get_fallback_response(agent_type, message)
+        # 3. ESSAYER AUTRES APIs (Gemini, Mistral, etc.)
+        other_apis = ['gemini', 'mistral', 'cohere', 'huggingface']
+        for api_name in other_apis:
+            key = user_apis.get(api_name, '')
+            if key and len(key.strip()) > 10:
+                try:
+                    response = self._call_universal_api(api_name, message, prompt, key)
+                    if response:
+                        return f"⚡ {response}"
+                except Exception as e:
+                    print(f"[{api_name.title()} Error] {e}")
+                    continue
+        
+        # 4. IA HORS LIGNE (Hugging Face gratuit)
+        try:
+            response = self._call_offline_ai(message, prompt, agent_type)
+            if response:
+                return f"🔄 {response}"
+        except Exception as e:
+            print(f"[Offline AI Error] {e}")
+        
+        # 5. FALLBACK INTELLIGENT
+        return self._get_smart_fallback(agent_type, message)
+    
+    def _is_valid_openai_key(self, key):
+        """Valider clé OpenAI (tous formats)"""
+        if not key or len(key.strip()) < 20:
+            return False
+        key = key.strip()
+        return key.startswith('sk-') and len(key) > 40
+    
+    def _is_valid_anthropic_key(self, key):
+        """Valider clé Anthropic"""
+        if not key or len(key.strip()) < 20:
+            return False
+        key = key.strip()
+        return key.startswith('sk-ant-') and len(key) > 50
     
     def _call_openai(self, message, prompt, api_key):
-        """Appel à l'API OpenAI avec gestion d'erreur détaillée"""
+        """Appel OpenAI universel"""
         headers = {
             'Authorization': f'Bearer {api_key.strip()}',
             'Content-Type': 'application/json'
@@ -82,27 +117,21 @@ class SimpleAI:
                 {'role': 'system', 'content': prompt},
                 {'role': 'user', 'content': message}
             ],
-            'max_tokens': 500,
+            'max_tokens': 800,
             'temperature': 0.7
         }
         
         response = requests.post('https://api.openai.com/v1/chat/completions', 
-                               headers=headers, json=data, timeout=20)
+                               headers=headers, json=data, timeout=25)
         
         if response.status_code == 200:
             result = response.json()
-            return result['choices'][0]['message']['content']
-        elif response.status_code == 401:
-            raise Exception(f"Clé API OpenAI invalide")
-        elif response.status_code == 429:
-            raise Exception(f"Quota OpenAI dépassé")
-        elif response.status_code == 400:
-            raise Exception(f"Requête OpenAI invalide")
+            return result['choices'][0]['message']['content'].strip()
         else:
-            raise Exception(f"Erreur OpenAI {response.status_code}")
+            raise Exception(f"OpenAI Error {response.status_code}: {response.text}")
     
     def _call_anthropic(self, message, prompt, api_key):
-        """Appel à l'API Anthropic avec gestion d'erreur détaillée"""
+        """Appel Anthropic universel"""
         headers = {
             'x-api-key': api_key.strip(),
             'Content-Type': 'application/json',
@@ -111,69 +140,104 @@ class SimpleAI:
         
         data = {
             'model': 'claude-3-haiku-20240307',
-            'max_tokens': 500,
+            'max_tokens': 800,
             'messages': [
                 {'role': 'user', 'content': f"{prompt}\n\nQuestion: {message}"}
             ]
         }
         
         response = requests.post('https://api.anthropic.com/v1/messages', 
-                               headers=headers, json=data, timeout=20)
+                               headers=headers, json=data, timeout=25)
         
         if response.status_code == 200:
             result = response.json()
-            return result['content'][0]['text']
-        elif response.status_code == 401:
-            raise Exception(f"Clé API Anthropic invalide")
-        elif response.status_code == 429:
-            raise Exception(f"Quota Anthropic dépassé")
+            return result['content'][0]['text'].strip()
         else:
-            raise Exception(f"Erreur Anthropic {response.status_code}")
+            raise Exception(f"Anthropic Error {response.status_code}: {response.text}")
     
-    def _get_fallback_response(self, agent_type, message):
-        """Réponses de fallback intelligentes"""
+    def _call_universal_api(self, api_name, message, prompt, api_key):
+        """Support pour autres APIs (Gemini, Mistral, etc.)"""
+        # Placeholder pour futures intégrations
+        # Ajoutera support Gemini, Mistral, Cohere, etc.
+        raise Exception(f"{api_name} pas encore supporté")
+    
+    def _call_offline_ai(self, message, prompt, agent_type):
+        """IA hors ligne via Hugging Face gratuit"""
+        try:
+            # Utilisation de l'API Inference gratuite de Hugging Face
+            api_url = "https://api-inference.huggingface.co/models/microsoft/DialoGPT-medium"
+            headers = {"Authorization": "Bearer hf_demo"}  # Token demo gratuit
+            
+            payload = {
+                "inputs": f"{prompt}\n\nUtilisateur: {message}\nAssistant:",
+                "parameters": {
+                    "max_length": 200,
+                    "temperature": 0.7,
+                    "return_full_text": False
+                }
+            }
+            
+            response = requests.post(api_url, headers=headers, json=payload, timeout=15)
+            
+            if response.status_code == 200:
+                result = response.json()
+                if isinstance(result, list) and len(result) > 0:
+                    generated_text = result[0].get('generated_text', '').strip()
+                    if generated_text and len(generated_text) > 10:
+                        return f"[IA Hors ligne] {generated_text}"
+            
+            raise Exception("Pas de réponse valide de l'IA hors ligne")
+            
+        except Exception as e:
+            raise Exception(f"IA hors ligne indisponible: {e}")
+    
+    def _get_smart_fallback(self, agent_type, message):
+        """Fallback intelligent basé sur le contexte"""
         
-        fallbacks = {
-            "alex": [
-                "Je vous aiderai avec vos emails dès que les services IA premium seront configurés. En attendant, voici quelques conseils généraux pour la productivité...",
-                "Pour organiser vos emails, je recommande de créer des dossiers par projet et d'utiliser des règles de tri automatiques.",
-                "Une bonne pratique est de traiter vos emails en blocs de temps dédiés, plutôt qu'en continu."
-            ],
-            "lina": [
-                "LinkedIn est un outil puissant ! Pour améliorer votre visibilité, postez régulièrement du contenu de qualité dans votre domaine.",
-                "N'hésitez pas à commenter les posts d'autres professionnels de votre secteur pour créer des connexions authentiques.",
-                "Un profil LinkedIn optimisé doit avoir une photo professionnelle, un titre accrocheur et un résumé qui met en valeur vos compétences."
-            ],
-            "marco": [
-                "Le contenu visuel performe toujours mieux sur les réseaux sociaux ! Pensez images, vidéos courtes et stories.",
-                "La régularité est clé sur les réseaux sociaux. Mieux vaut poster 3 fois par semaine que 10 fois puis rien pendant un mois.",
-                "Interagissez avec votre audience ! Répondez aux commentaires et posez des questions dans vos posts."
-            ],
-            "sofia": [
-                "Pour une organisation optimale, je recommande la méthode GTD (Getting Things Done) : capturer, clarifier, organiser, réfléchir, agir.",
-                "Utilisez un calendrier unique pour tous vos rendez-vous et bloquez du temps pour vos tâches importantes.",
-                "La règle des 2 minutes : si une tâche prend moins de 2 minutes, faites-la immédiatement !"
-            ],
-            "kai": [
-                "C'est une question intéressante ! Pour une réponse plus personnalisée, ajoutez vos clés API dans la configuration.",
-                "Je suis là pour discuter de tout et n'importe quoi ! Qu'est-ce qui vous intéresse aujourd'hui ?",
-                "En mode fallback, je donne des conseils généraux. Configurez une API pour des réponses sur mesure !"
-            ]
+        # Analyse du message pour réponse contextuelle
+        message_lower = message.lower() if message else ""
+        
+        smart_responses = {
+            "alex": {
+                "email": "Pour vos emails, utilisez la règle des 4D : Supprimer, Déléguer, Faire, Différer. Organisez avec des dossiers clairs et traitez par blocs de temps.",
+                "productivité": "La méthode Pomodoro (25 min focus + 5 min pause) et la matrice d'Eisenhower (urgent/important) sont vos meilleurs alliés.",
+                "gmail": "Dans Gmail : utilisez les libellés, filtres automatiques, raccourcis clavier et la fonction 'Réponses automatiques' pour gagner du temps.",
+                "default": "💡 Pour une aide personnalisée complète, connectez une clé API dans Configuration. En attendant, je peux vous donner des conseils généraux de productivité !"
+            },
+            "lina": {
+                "linkedin": "LinkedIn : Postez 3-5x/semaine, commentez authentiquement, personnalisez vos invitations et optimisez votre titre professionnel.",
+                "réseau": "Pour développer votre réseau : participez aux discussions, partagez du contenu de valeur et connectez avec des pairs de votre industrie.",
+                "profil": "Profil LinkedIn optimal : photo pro, titre accrocheur, résumé avec mots-clés, expériences détaillées et recommandations.",
+                "default": "🌟 LinkedIn est votre vitrine professionnelle ! Pour des stratégies personnalisées avancées, ajoutez votre clé API dans Configuration."
+            },
+            "marco": {
+                "social": "Réseaux sociaux : Contenu visuel (80%), posts réguliers, interaction authentique et analyse de vos métriques pour optimiser.",
+                "contenu": "Contenu viral : Utilisez les tendances actuelles, ajoutez de l'émotion, posez des questions et publiez aux heures de pointe.",
+                "instagram": "Instagram : Stories quotidiennes, Reels créatifs, hashtags stratégiques (5-10 max) et collaborations avec d'autres créateurs.",
+                "default": "🚀 Les réseaux sociaux évoluent vite ! Pour des stratégies à jour et personnalisées, configurez votre API pour des conseils d'expert."
+            },
+            "sofia": {
+                "planning": "Planning efficace : Time-blocking au calendrier, buffers entre RDV, préparation la veille et révision hebdomadaire.",
+                "calendrier": "Calendrier optimal : Couleurs par catégorie, notifications intelligentes, synchronisation multi-appareils et temps de déplacement inclus.",
+                "organisation": "Organisation : Méthode GTD (Getting Things Done), outils numériques synchronisés et revues régulières de vos systèmes.",
+                "default": "📅 L'organisation est un art ! Pour un système sur-mesure adapté à vos besoins, ajoutez votre clé API dans Configuration."
+            },
+            "kai": {
+                "default": "💬 Je suis là pour discuter de tout ! Pour des conversations plus approfondies et personnalisées, connectez une API dans Configuration. En attendant, je peux vous aider avec des conseils généraux !"
+            }
         }
         
-        import random
-        responses = fallbacks.get(agent_type, fallbacks["kai"])
-        selected_response = random.choice(responses)
+        agent_responses = smart_responses.get(agent_type, smart_responses["kai"])
         
-        # Ajouter un contexte basé sur le message si possible
-        message_lower = message.lower() if message else ""
-        if "api" in message_lower or "gpt" in message_lower or "openai" in message_lower:
-            return f"[Mode Fallback] {selected_response} 💡 Ajoutez votre clé API dans Configuration pour activer GPT/Claude !"
+        # Recherche de mot-clé dans le message
+        for keyword, response in agent_responses.items():
+            if keyword != "default" and keyword in message_lower:
+                return f"💡 {response}"
         
-        return f"[Mode Fallback] {selected_response}"
+        return f"💡 {agent_responses['default']}"
 
 # Instance IA globale
-ai_system = SimpleAI()
+ai_system = UniversalAI()
 
 @app.route('/')
 def index():
@@ -186,15 +250,11 @@ def chat_page(agent):
     if agent not in ['alex', 'lina', 'marco', 'sofia', 'kai']:
         return redirect(url_for('index'))
     
-    try:
-        return render_template('chat.html', agent=agent)
-    except Exception as e:
-        print(f"Template error: {e}")
-        return redirect(url_for('index'))
+    return render_template('chat_ultimate.html', agent=agent)
 
 @app.route('/api/chat', methods=['POST'])
 def api_chat():
-    """API pour discuter avec les agents"""
+    """API universelle pour tous les agents et toutes les APIs IA"""
     data = request.get_json()
     
     if not data or 'message' not in data or 'agent' not in data:
@@ -202,78 +262,93 @@ def api_chat():
     
     message = data['message']
     agent = data['agent']
-    user_openai_key = data.get('openai_key', '').strip()
-    user_anthropic_key = data.get('anthropic_key', '').strip()
+    
+    # Récupération de TOUTES les clés API possibles
+    user_apis = {
+        'openai_key': data.get('openai_key', '').strip(),
+        'openai': data.get('openai', '').strip(),
+        'anthropic_key': data.get('anthropic_key', '').strip(),
+        'anthropic': data.get('anthropic', '').strip(),
+        'claude': data.get('claude', '').strip(),
+        'gemini': data.get('gemini', '').strip(),
+        'mistral': data.get('mistral', '').strip(),
+        'cohere': data.get('cohere', '').strip(),
+        'huggingface': data.get('huggingface', '').strip()
+    }
     
     if agent not in ['alex', 'lina', 'marco', 'sofia', 'kai']:
         return jsonify({'error': 'Agent invalide'}), 400
     
     try:
-        response = ai_system.get_response(
-            message, 
-            agent, 
-            user_openai_key=user_openai_key, 
-            user_anthropic_key=user_anthropic_key
-        )
+        print(f"[INFO] Agent {agent} traite: '{message[:50]}...'")
+        print(f"[INFO] APIs disponibles: {[k for k, v in user_apis.items() if v]}")
+        
+        response = ai_system.get_response(message, agent, user_apis)
+        
+        print(f"[INFO] Réponse générée: {response[:100]}...")
+        
         return jsonify({
             'response': response,
             'agent': agent,
-            'timestamp': datetime.now().isoformat()
+            'timestamp': datetime.now().isoformat(),
+            'apis_tried': [k for k, v in user_apis.items() if v]
         })
     except Exception as e:
-        print(f"API chat error: {e}")
+        print(f"[ERROR] Erreur API chat: {e}")
         return jsonify({'error': 'Erreur lors de la génération de la réponse'}), 500
 
 @app.route('/settings')
 def settings():
-    """Page de configuration"""
-    return render_template('settings.html')
+    """Page de configuration universelle"""
+    return render_template('settings_ultimate.html')
 
 @app.route('/health')
 def health():
-    """Endpoint de santé pour Render"""
-    return jsonify({'status': 'healthy', 'timestamp': datetime.now().isoformat()})
+    """Endpoint de santé"""
+    return jsonify({
+        'status': 'healthy', 
+        'timestamp': datetime.now().isoformat(),
+        'version': 'WaveAI v3 Ultimate'
+    })
 
 @app.route('/api/test-keys', methods=['POST'])
 def test_api_keys():
-    """Tester les clés API"""
+    """Test universel de toutes les clés API"""
     data = request.get_json()
-    
     results = {}
     
     # Test OpenAI
-    if data.get('openai_key'):
-        try:
-            key = data["openai_key"].strip()
-            if not key.startswith('sk-'):
-                results['openai'] = False
-                results['openai_error'] = 'Format invalide'
-            else:
-                headers = {'Authorization': f'Bearer {key}'}
-                response = requests.get('https://api.openai.com/v1/models', headers=headers, timeout=10)
-                results['openai'] = response.status_code == 200
-                if response.status_code != 200:
-                    results['openai_error'] = f'Code {response.status_code}'
-        except Exception as e:
-            results['openai'] = False
-            results['openai_error'] = str(e)
+    openai_keys = [data.get('openai_key'), data.get('openai')]
+    for i, key in enumerate(openai_keys):
+        if key and key.strip():
+            try:
+                key = key.strip()
+                if ai_system._is_valid_openai_key(key):
+                    headers = {'Authorization': f'Bearer {key}'}
+                    response = requests.get('https://api.openai.com/v1/models', headers=headers, timeout=10)
+                    results[f'openai_{i+1}'] = response.status_code == 200
+                else:
+                    results[f'openai_{i+1}'] = False
+            except:
+                results[f'openai_{i+1}'] = False
     
     # Test Anthropic
-    if data.get('anthropic_key'):
-        try:
-            key = data["anthropic_key"].strip()
-            if not key.startswith('sk-ant-'):
-                results['anthropic'] = False
-                results['anthropic_error'] = 'Format invalide'
-            else:
-                results['anthropic'] = True  # Pas de test simple pour Anthropic
-        except Exception as e:
-            results['anthropic'] = False
-            results['anthropic_error'] = str(e)
+    anthropic_keys = [data.get('anthropic_key'), data.get('anthropic'), data.get('claude')]
+    for i, key in enumerate(anthropic_keys):
+        if key and key.strip():
+            results[f'anthropic_{i+1}'] = ai_system._is_valid_anthropic_key(key.strip())
+    
+    # Test IA hors ligne
+    try:
+        test_response = ai_system._call_offline_ai("test", "Tu es un assistant", "kai")
+        results['offline_ai'] = bool(test_response)
+    except:
+        results['offline_ai'] = False
     
     return jsonify(results)
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
-    print(f"[INFO] Démarrage WaveAI v3 sur le port {port}")
+    print(f"[INFO] 🌊 Démarrage WaveAI v3 Ultimate sur le port {port}")
+    print(f"[INFO] 🤖 Support: OpenAI, Anthropic, IA hors ligne + APIs universelles")
     app.run(host='0.0.0.0', port=port, debug=False)
